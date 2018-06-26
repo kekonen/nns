@@ -7,7 +7,7 @@ image_hight = 140
 image_width = 140
 
 def getList(label):
-	img_dir = "../data/train/"+label
+	img_dir = "/data/train/"+label+'s'
 	list_of_imgs = []
 	list_of_labels = []
 	if label == 'cat':
@@ -45,7 +45,7 @@ dataset = dataset.shuffle(buffer_size=len(features))
 dataset = dataset.batch(batch_size)
 
 iterator = dataset.make_one_shot_iterator()
-
+training_init_op = iterator.make_initializer(dataset)
 # sess=tf.Session()
 # batch = iterator.get_next()
 # bt=sess.run(batch)
@@ -128,12 +128,13 @@ def neural_network_model(data, keep_prob):
 
 def train_model(x, keep_prob):
 	prediction = neural_network_model(x, keep_prob)
-	cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=prediction, labels=y))
-	train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+	cross_entropy = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=prediction, labels=y))
+	train_step = tf.train.GradientDescentOptimizer(0.1).minimize(cross_entropy)
 
 	# correct = tf.equal(tf.argmax(prediction,1), tf.argmax(y,1))
 	# accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
 	# print('Accuracy:', accuracy.eval({x:mnist.test.images, y:mnist.test.labels}))
+	get_next = iterator.get_next()
 
 
 	with tf.Session() as sess:
@@ -142,9 +143,10 @@ def train_model(x, keep_prob):
 		sess.run(tf.global_variables_initializer())
 
 		for epoch in range(hm_epochs):
+			sess.run(training_init_op)
 			print('starting epoch:',epoch, 'of', hm_epochs)
 			for i in range(int(len(features)/batch_size)):
-				batch = sess.run(iterator.get_next())
+				batch = sess.run(get_next)
 				if i%100 == 0:
 					train_accuracy = accuracy.eval(feed_dict={x:batch[0], y: batch[1], keep_prob: 1.0})
 					print("step %d, training accuracy %g"%(i, train_accuracy))
