@@ -57,8 +57,8 @@ iterator = dataset.make_one_shot_iterator()
 
 # dataset = input_data.read_data_sets('data', one_hot=True)
 
-n_nodes_cnv1 = 32
-n_nodes_cnv2 = 64
+n_nodes_cnv1 = 128
+n_nodes_cnv2 = 256
 
 n_nodes_hl1 = 512
 # n_nodes_hl2 = 500
@@ -78,10 +78,10 @@ keep_prob = tf.placeholder(tf.float32)
 
 
 def neural_network_model(data, keep_prob):
-	conv_1_layer = {'weights':tf.Variable(tf.truncated_normal([5, 5, n_channels, n_nodes_cnv1], stddev=0.1)), 
+	conv_1_layer = {'weights':tf.Variable(tf.truncated_normal([3, 3, n_channels, n_nodes_cnv1], stddev=0.1)), 
 		'biases':tf.Variable(tf.constant(0.1, shape=[n_nodes_cnv1]))}
 
-	conv_2_layer = {'weights':tf.Variable(tf.truncated_normal([5, 5, 32, n_nodes_cnv2], stddev=0.1)), 
+	conv_2_layer = {'weights':tf.Variable(tf.truncated_normal([3, 3, n_nodes_cnv1, n_nodes_cnv2], stddev=0.1)), 
 		'biases':tf.Variable(tf.constant(0.1, shape=[n_nodes_cnv2]))}
 
 	hidden_1_layer = {'weights':tf.Variable(tf.truncated_normal([35 * 35 * n_nodes_cnv2, n_nodes_hl1], stddev=0.1)),
