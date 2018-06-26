@@ -55,11 +55,11 @@ class Guy:
 						line[y] = str(line[y])+ ' '
 			print(''.join(line))
 	def move(self, where):
-		if self.world[self.x + movexy[where][0]][self.y + movexy[where][1]] == 'w':
+		if self.world[self.x + self.movexy[where][0]][self.y + self.movexy[where][1]] == 'w':
 			self.steps += 1
 		else:
-			self.x += movexy[where][0]
-			self.y += movexy[where][1]
+			self.x += self.movexy[where][0]
+			self.y += self.movexy[where][1]
 			self.steps += 1
 		return self.x, self.y
 	def act(self, where):
@@ -92,7 +92,6 @@ class Guy:
 					image[x][y] = (0, 0, 0)
 
 a = Guy(world, 1, 1)
-
 
 
 
