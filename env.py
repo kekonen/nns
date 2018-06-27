@@ -14,6 +14,10 @@ world = [ #															 x
 		[ 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' ]
 	   ]
 
+# How much u can get if u looser?
+# max_technical_worst = hunger_rate * max_steps = 500 * 0.05 = -25
+# max_technical_best  = 30 in numbers + finish = 40
+
 class Guy:
 	def __init__(self, world='std', finish_value = 10, hunger_rate = 0.05, max_reward = 10, max_steps = 500):
 		stdworld = [ #															 x
@@ -29,6 +33,7 @@ class Guy:
 		[ 'w' ,  7  , ' ' , ' ' , ' ' , ' ' , -2  , ' ' , ' ' , ' ' , 'w' ],
 		[ 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' ]
 		]
+		self.min_steps = 12
 		if world == 'std':
 			self.init_world = self.copy_world(stdworld)
 		else:
@@ -37,22 +42,29 @@ class Guy:
 		# self.x, self.y = self.find_self()
 		# self.world[self.x][self.y] = ' '
 		self.max_steps = max_steps
+		self.board = []
 		self.hunger_rate = hunger_rate
 		self.max_possible = 45
 		self.max_reward = max_reward
 		self.finish_value = finish_value
+		self.board = [['up', 'left'], ['right', 'down']]
+		self.board_flat = ['up', 'left', 'right', 'down']
 		self.movexy = {
-			'up':    [-1, 0],
-			'right': [ 0, 1],
-			'left':  [ 0,-1],
+			'up':    [-1, 0], # [][]0
+			'right': [ 0, 1], # [][]1
+			'left':  [ 0,-1], #  0 1\
 			'down':  [ 1, 0]
 		}
 		self.reset()
+
+
 	def copy_world(self, world):
 		new_world = []
 		for i in world:
 			new_world.append(i[:])
 		return new_world
+
+
 	def reset(self):
 		self.world = self.copy_world(self.init_world)
 		# print(self.world)
@@ -63,6 +75,8 @@ class Guy:
 		self.steps = 0
 		return self.get_observation()
 		# self.world[self.x][self.y] = ' '
+
+
 	def find_self(self):
 		for x in range(     self.world_height ):
 			for y in range( self.world_width  ):
@@ -70,6 +84,8 @@ class Guy:
 					self.world[x][y] = ' '
 					# print(x,y)
 					return x, y
+
+
 	def print_world(self):
 		print('Score: ', self.score)
 		print('Steps: ', self.steps)
@@ -90,6 +106,8 @@ class Guy:
 					else:
 						line[y] = str(line[y])+ ' '
 			print(''.join(line))
+
+
 	def move(self, where):
 		if self.world[self.x + self.movexy[where][0]][self.y + self.movexy[where][1]] == 'w':
 			self.steps += 1
@@ -98,41 +116,49 @@ class Guy:
 			self.y += self.movexy[where][1]
 			self.steps += 1
 		return self.x, self.y
-	def act(self, where):
+
+
+	def no_left_steps(self):
+		return self.steps > self.max_steps
+
+
+	def act(self, where): 
+		if type(where) == list:
+			where = self.board[where[0]][where[1]]
+
+		time_passed = self.steps/self.max_steps
 		x,y = self.move(where)
 		reward, finish = self.consume_under()
 		observation = self.get_observation()
 		featurable_reward = reward/self.max_reward
-		self.score -= self.hunger_rate
-		featurable_score = self.get_featurable_score()
+		featurable_score = self.score/self.max_possible
 		self.print_world()
-		if finish or self.steps > self.max_steps:
+		if finish or self.no_left_steps():
 			score = self.score
 			self.reset()
-			return score
-		return observation, featurable_reward, featurable_score
+			return observation, [featurable_reward, featurable_score, time_passed], score
+		return observation, [featurable_reward, featurable_score, time_passed], False
 		# print(u"\u2588")
-	def get_featurable_score(self):
-		observe_score = np.zeros((2,))
-		if self.score >= 0:
-			observe_score[0] =  self.score/self.max_possible
-		else:
-			observe_score[1] = -self.score/self.max_possible
-		return observe_score
+
+
 	def consume_under(self):
 		self.under = self.world[self.x][self.y]
+		finish = False
+		reward = 0
 		if self.under == 'e':
-			final_reward = self.get_final_reward()
-			self.score += final_reward
-			return final_reward, True
-		elif self.under == ' ':
-			return 0, False
-		elif type(self.under) == type(1):
-			self.score += self.under
+			reward = self.get_final_reward() 
+			finish = True
+		elif type(self.under) == int:
 			self.world[self.x][self.y] = ' '
-			return self.under, False
+			reward = self.under 
+		self.score += reward - self.hunger_rate
+		return reward, finish
+
+
 	def get_final_reward(self):
 		return self.finish_value/self.steps
+
+
 	def get_observation(self):
 		image = np.zeros((self.world_height, self.world_width, 4))
 		for x in range(self.world_width):
@@ -149,6 +175,23 @@ class Guy:
 				else:
 					image[x][y] = (0, 0, 0, 0)
 		return image
+
+
+	def ways_to_go(self):
+		add = []
+		for direction in self.board_flat:
+			z = self.movexy[direction]
+			if self.world[self.x+z[0]][self.y+z[1]] != 'w':
+				add.append(direction)
+		return add
+	# def run_x_steps(self, x=self.min_steps):
+	# 	for i in range(x):
+	# 		self.
+	# 	return 
+	# def run_games(self, n_games):
+
+	# 	for i in range(n_games):
+
 
 # a = Guy(world, finish_value = 100, hunger_rate = 0.05)
 
