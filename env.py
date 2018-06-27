@@ -15,9 +15,8 @@ world = [ #															 x
 	   ]
 
 class Guy:
-	def __init__(self, world, finish_value = 10, hunger_rate = 0.05, max_reward = 10, max_steps = 500):
-		stdworld = 
-		[ #															 x
+	def __init__(self, world='std', finish_value = 10, hunger_rate = 0.05, max_reward = 10, max_steps = 500):
+		stdworld = [ #															 x
 		[ 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' , 'w' ],# y
 		[ 'w' , ' ' ,  3  , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , 'w' ],
 		[ 'w' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , ' ' , 'w' ],
